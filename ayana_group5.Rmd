@@ -1,0 +1,57 @@
+#Load libraries
+```{r}
+library(tidyverse)
+library(RColorBrewer)
+library(paletteer)
+library(janitor)
+library(here)
+```
+
+#Load the data
+```{r}
+fish <- readr::read_csv("archive/fish.csv")
+```
+
+```{r}
+insects <- readr::read_csv("archive/insects.csv")
+```
+
+```{r}
+glimpse(fish)
+```
+
+#Clean the names
+```{r}
+fish <- fish %>% 
+  janitor::clean_names()
+```
+
+
+```{r}
+names(fish)
+```
+
+#Select the columns that we will use 
+```{r}
+new_fish <- fish %>% 
+  select(-color_1, -color_2, -size, -lighting_type, -icon_filename, -critterpedia_filename, -furniture_filename, -internal_id, -unique_entry_id)
+```
+
+#Pivot the times of day, months, and hemispheres
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
