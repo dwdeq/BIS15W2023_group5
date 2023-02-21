@@ -1,0 +1,44 @@
+---
+title: "Template"
+output:
+  html_document:
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+## Load libraries
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(RColorBrewer)
+library(paletteer)
+library(janitor)
+library(here)
+```
+
+## Load the data
+```{r}
+insects <- clean_names(read_csv(here("data","insects.csv")))
+fish <- clean_names(read_csv(here("data","fish.csv")))
+insects
+```
+
+```{r}
+insects %>% 
+  select(-contains("file"), -contains("id"), -contains("sh"), -contains("color"), -"number") %>% 
+  pivot_longer(7:18,
+               names_to = "month",
+               names_prefix = "nh_",
+               values_to = "times") %>% 
+  filter(times != "NA") %>% 
+  replace(. == "All day", "12 AM – 11 PM") %>% 
+  separate(times, into = c("start_times","end_times"), sep = " – ") %>% 
+  separate(start_times, into = c("start_times","start_td"), sep = " ") %>% 
+  separate(end_times, into = c("end_times","end_td"), sep = " ")
+```
+
+
+
+-->[Home](https://jmledford3115.github.io/datascibiol/)
