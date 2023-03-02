@@ -42,6 +42,21 @@ new_fish <- fish %>%
 naniar::miss_var_summary(new_fish)
 ```
 
+## Split morning and night
+```{r}
+new_fish %>% 
+ 
+```
+
+
+
+
+
+
+
+
+
+
 ## To catch a fish with a sell value of 10000, where would be a good place to fish? What fish would you expect to catch?
 
 ```{r}
@@ -55,7 +70,28 @@ new_fish %>%
 new_fish %>% 
   ggplot(aes(x=shadow, y=sell, fill = shadow)) + geom_col() 
 ```
+## Fish App
 
+```{r}
+library(shiny)
+library(shinydashboard)
+```
+
+
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+  titlePanel("Animal Crossing Fish Data"),
+  helpText("This dataset comes from this spreadsheet, a comprehensive Item Catalog for Animal Crossing New Horizons (ACNH).")
+)
+
+server <- function(input, output, session) {
+  
+}
+
+shinyApp(ui, server)
+```
 
 
 
