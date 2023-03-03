@@ -25,8 +25,16 @@ fish <- clean_names(read_csv(here("data","fish.csv")))
 insects
 ```
 
+
+
 ```{r}
 insects %>% 
+  count(where_how) %>% 
+  arrange(desc(n))
+```
+
+```{r}
+bugs <- insects %>% 
   select(-contains("file"), -contains("id"), -contains("sh"), -contains("color"), -"number") %>% 
   pivot_longer(7:18,
                names_to = "month",
@@ -39,6 +47,19 @@ insects %>%
   separate(end_times, into = c("end_times","end_td"), sep = " ")
 ```
 
+```{r}
+bugs$start_times <- as.numeric(bugs$start_times)
+bugs$end_times <- as.numeric(bugs$end_times)
+bugs
+```
 
+```{r}
+bugs <- bugs %>% 
+  mutate(start_times = ifelse(start_times == 12, 0, start_times)) %>% 
+  mutate(start_times = ifelse(start_td == "PM",start_times+12,start_times)) %>%
+  mutate(end_times = ifelse(end_times == 12, 0, end_times)) %>% 
+  mutate(end_times = ifelse(end_td == "PM",end_times+12,end_times)) %>% 
+  select(-"start_td",-"end_td")
+```
 
 -->[Home](https://jmledford3115.github.io/datascibiol/)
