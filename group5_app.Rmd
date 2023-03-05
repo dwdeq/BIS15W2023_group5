@@ -111,14 +111,34 @@ museum
 ```
 
 ```{r}
-ggplot(museum, aes(x = month, ymin = start_times, ymax = end_times, color = month)) +
+myColors <- c("#7BAFF7", "#A4D2F1", "#27A34D", "#A9F364", "#FCBBD3", "#F72D2D", "#FF800F", "#FFBE13", "#815800", "#B9923E", "#D6D1B2", "#6B87AE")
+```
+
+```{r}
+ggplot(filter(museum, museum$name == "anchovy"), 
+      aes(x = month,
+           ymin = start_times, 
+           ymax = end_times, 
+           color = month),
+      xlim = c("jan","dec")) +
       geom_linerange(size = 14) +
-      theme_classic() +
-      labs(title = "Catching Times by Month",
-           x = NULL,
+      theme_classic(base_size = 12) +
+      labs(x = NULL,
            y = "Times (24hrs)") +
-      theme(plot.title = element_text(hjust = .5)) +
-      scale_y_continuous(breaks = seq(0, 24, by = 1))
+      theme(axis.title.y = element_text(size = 18),
+            panel.grid.major.y = element_line(),
+            axis.line = element_blank()) +
+      scale_y_continuous(limits = c(0,24), breaks = seq(0, 24, by = 1)) +
+      xlim("jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec") + 
+  scale_color_manual(values = myColors, drop = T, limits = levels(museum$month))
+```
+
+```{r}
+wi <- filter(museum, name == "carp")$weather[1]
+    if (anyNA(wi)){
+      wi <- NULL
+    }
+wi
 ```
 
 ```{r}
@@ -127,18 +147,24 @@ ui <- dashboardPage(skin = "purple",
   dashboardSidebar(disable = T),
   dashboardBody(
     fluidRow(
-      box(title = "Category", width = 6,
-        selectInput("cat", "Select Museum Category", 
-                    choices = c("fish","bugs"), selected = "fish")
+      box(title = "Category", width = 3,
+        radioButtons("cat", "Select Museum Category", 
+                    choices = c("fish","bugs"))
       ), 
-      box(title = "Species", width = 6,
+      box(title = "Species", width = 3,
         selectInput("spec", "Select Species", 
-                    choices = NULL, selected = NULL)
+                    choices = NULL)
+      )    
+    ),
+    fluidRow(
+      box(title = "Catching Times by Month", width = 7,
+          plotOutput("plot", 
+             width = "550px", 
+             height = "400px")
       ),
-      box(title = "Catching Times by Month", width = 12,
-        plotOutput("plot", 
-             width = "850px", 
-             height = "750px")
+      box(title = "Catch Info", width = 3,
+          textOutput("catch_info"),
+          textOutput("weather_info")
       )
     )
   )
@@ -148,7 +174,7 @@ server <- function(input, output, session) {
   observe({
     new_choices <- unique(filter(museum, category == input$cat)$name)
     updateSelectInput(session, "spec", 
-                      choices = new_choices, selected = "cherry salmon")
+                      choices = new_choices)
   })
   output$plot <- renderPlot({
     ggplot(filter(museum, museum$name == input$spec), 
@@ -161,12 +187,26 @@ server <- function(input, output, session) {
       theme_classic(base_size = 18) +
       labs(x = NULL,
            y = "Times (24hrs)") +
+      scale_color_manual(values = myColors, drop = T, limits = levels(museum$month)) +
       theme(axis.title.y = element_text(size = 24),
             panel.grid.major.y = element_line(),
             axis.line = element_blank()) +
       scale_y_continuous(limits = c(0,24), breaks = seq(0, 24, by = 1)) +
       xlim("jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec")
   })
+  output$catch_info <- renderText({
+    paste("Where/How: ", filter(museum, name == input$spec)$where_how[1])
+  })
+
+  output$weather_info <- renderText({
+    weather <- filter(museum, name == input$spec)$weather[1]
+    if (is.na(weather)) {
+        NULL
+    } else {
+        paste("Weather: ", weather)
+    }
+  })
+  session$onSessionEnded(stopApp)
 }
 
 shinyApp(ui, server)
