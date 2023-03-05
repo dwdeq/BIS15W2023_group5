@@ -1,0 +1,176 @@
+---
+title: "Template"
+output:
+  html_document:
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+## Load libraries
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(RColorBrewer)
+library(paletteer)
+library(janitor)
+library(here)
+library(shiny)
+library(shinydashboard)
+```
+
+## Load the data
+```{r}
+insects <- clean_names(read_csv(here("data","insects.csv")))
+fishes <- clean_names(read_csv(here("data","fish.csv")))
+```
+
+
+
+```{r}
+bugs <- insects %>% 
+  select(-contains("file"), -contains("id"), -contains("sh"), -contains("color"), -"number") %>% 
+  pivot_longer(nh_jan:nh_dec,
+               names_to = "month",
+               names_prefix = "nh_",
+               values_to = "times") %>% 
+  filter(times != "NA") %>% 
+  mutate_all(~ gsub("\\ ", " ", .)) %>% 
+  replace(. == "All day", "12 AM – 24 AM") %>% 
+  separate(times, into = c("start_times","end_times"), sep = " – ") %>% 
+  separate(start_times, into = c("start_times","start_td"), sep = " ") %>% 
+  separate(end_times, into = c("end_times","end_td"), sep = " ")
+```
+
+```{r}
+bugs$start_times <- as.numeric(bugs$start_times)
+bugs$end_times <- as.numeric(bugs$end_times)
+```
+
+```{r}
+bugs <- bugs %>% 
+  mutate(start_times = ifelse(start_times == 12, 0, start_times)) %>% 
+  mutate(start_times = ifelse(start_td == "PM",start_times+12,start_times)) %>%
+  mutate(end_times = ifelse(end_times == 12, 0, end_times)) %>% 
+  mutate(end_times = ifelse(end_td == "PM",end_times+12,end_times)) %>% 
+  select(-"start_td",-"end_td") %>% 
+  mutate(category = "bugs")
+bugs
+```
+
+
+```{r}
+fish <- fishes %>% 
+  select(-contains("file"), -contains("id"), -contains("sh"), -contains("color"), -"number", -"lighting_type", -"rain_snow_catch_up", -"size") %>% 
+  pivot_longer(nh_jan:nh_dec,
+               names_to = "month",
+               names_prefix = "nh_",
+               values_to = "times") %>% 
+  filter(times != "NA") %>% 
+  mutate_all(~ gsub("\\ ", " ", .)) %>% 
+  replace(. == "All day", "0 AM – 24 AM") %>% 
+  separate(times, into = c("start_times","end_times"), sep = " – ") %>% 
+  separate(start_times, into = c("start_times","start_td"), sep = " ") %>% 
+  separate(end_times, into = c("end_times","end_td"), sep = " ")
+```
+
+```{r}
+fish$start_times <- as.numeric(fish$start_times)
+fish$end_times <- as.numeric(fish$end_times)
+```
+
+```{r}
+fish <- fish %>% 
+  mutate(start_times = ifelse(start_times == 12, 0, start_times)) %>% 
+  mutate(start_times = ifelse(start_td == "PM",start_times+12,start_times)) %>%
+  mutate(end_times = ifelse(end_times == 12, 0, end_times)) %>% 
+  mutate(end_times = ifelse(end_td == "PM",end_times+12,end_times)) %>% 
+  select(-"start_td",-"end_td") %>% 
+  mutate(category = "fish")
+```
+
+```{r}
+fish
+bugs
+```
+
+```{r}
+museum <- full_join(fish, bugs)
+museum
+```
+
+```{r}
+month.abb.l <- tolower(month.abb)
+month.abb.l
+```
+
+```{r}
+museum$month <- factor(museum$month, levels = month.abb.l)
+museum
+```
+
+```{r}
+ggplot(museum, aes(x = month, ymin = start_times, ymax = end_times, color = month)) +
+      geom_linerange(size = 14) +
+      theme_classic() +
+      labs(title = "Catching Times by Month",
+           x = NULL,
+           y = "Times (24hrs)") +
+      theme(plot.title = element_text(hjust = .5)) +
+      scale_y_continuous(breaks = seq(0, 24, by = 1))
+```
+
+```{r}
+ui <- dashboardPage(skin = "purple",
+  dashboardHeader(title = "Animal Crossing Museum Guide"),
+  dashboardSidebar(disable = T),
+  dashboardBody(
+    fluidRow(
+      box(title = "Category", width = 6,
+        selectInput("cat", "Select Museum Category", 
+                    choices = c("fish","bugs"), selected = "fish")
+      ), 
+      box(title = "Species", width = 6,
+        selectInput("spec", "Select Species", 
+                    choices = NULL, selected = NULL)
+      ),
+      box(title = "Catching Times by Month", width = 12,
+        plotOutput("plot", 
+             width = "850px", 
+             height = "750px")
+      )
+    )
+  )
+)
+
+server <- function(input, output, session) { 
+  observe({
+    new_choices <- unique(filter(museum, category == input$cat)$name)
+    updateSelectInput(session, "spec", 
+                      choices = new_choices, selected = "cherry salmon")
+  })
+  output$plot <- renderPlot({
+    ggplot(filter(museum, museum$name == input$spec), 
+           aes_string(x = "month", 
+                      ymin = "start_times", 
+                      ymax = "end_times", 
+                      color = "month"),
+           xlim = c("jan","dec")) +
+      geom_linerange(size = 14) +
+      theme_classic(base_size = 18) +
+      labs(x = NULL,
+           y = "Times (24hrs)") +
+      theme(axis.title.y = element_text(size = 24),
+            panel.grid.major.y = element_line(),
+            axis.line = element_blank()) +
+      scale_y_continuous(limits = c(0,24), breaks = seq(0, 24, by = 1)) +
+      xlim("jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec")
+  })
+}
+
+shinyApp(ui, server)
+```
+
+
+-->[Home](https://jmledford3115.github.io/datascibiol/)
