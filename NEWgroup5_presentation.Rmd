@@ -23,7 +23,10 @@ Fish and insects are organisms that can be caught in the game and sold to the mu
 
 ## Cleaning the data
 
+Names: janitor work
 
+Seasonality: 
+To work with the varying organisms that can be caught during the different months, (and to account for hemispheres in the game), we cleaned the data so that the catch times were organized by hour of the day, by each month.
 
 ## Animal Crossing Museum Guide App
 
@@ -33,5 +36,3 @@ Fish and insects are organisms that can be caught in the game and sold to the mu
 https://www.kaggle.com/datasets/jessicali9530/animal-crossing-new-horizons-nookplaza-dataset
 
 https://en.wikipedia.org/wiki/Animal_Crossing:_New_Horizons#
-
-
