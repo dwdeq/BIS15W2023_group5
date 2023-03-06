@@ -1,5 +1,5 @@
 ---
-title: "App for Animal Crrossing Presentation"
+title: "App for Animal Crossing Presentation"
 author: "DQ"
 date: "2023-03-01"
 output: html_document
@@ -220,4 +220,4 @@ shinyApp(ui, server)
 ```
 
 
--->[Home](https://jmledford3115.github.io/datascibiol/)
+-->[Home](https://github.com/dwdeq/BIS15W2023_group5/)
