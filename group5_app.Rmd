@@ -1,12 +1,8 @@
 ---
-title: "Template"
-output:
-  html_document:
-    theme: spacelab
-    toc: yes
-    toc_float: yes
-  pdf_document:
-    toc: yes
+title: "App for Animal Crrossing Presentation"
+author: "DQ"
+date: "2023-03-01"
+output: html_document
 ---
 
 ## Load libraries
