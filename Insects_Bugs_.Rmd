@@ -1,5 +1,5 @@
 ---
-title: "Insects"
+title: "Graphs for Animal Crrossing Presentation"
 author: "Sidney"
 date: "2023-03-05"
 output: html_document
@@ -12,11 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 insects <- clean_names(read_csv(here("data","insects.csv")))
 fishes <- clean_names(read_csv(here("data","fish.csv")))
-```
-```{r}
-insects %>% 
-  count(where_how) %>% 
-  arrange(desc(n))
 ```
 
 ```{r}
