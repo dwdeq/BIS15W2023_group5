@@ -1,8 +1,12 @@
 ---
-title: "App for Animal Crossing Presentation"
-author: "DQ"
-date: "2023-03-01"
-output: html_document
+title: "Template"
+output:
+  html_document:
+    theme: spacelab
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
 ---
 
 ## Load libraries
@@ -22,6 +26,7 @@ library(png)
 ```{r}
 insects <- clean_names(read_csv(here("data","insects.csv")))
 fishes <- clean_names(read_csv(here("data","fish.csv")))
+arrange(insects, number)
 ```
 
 ```{r}
@@ -140,7 +145,8 @@ ui <- dashboardPage(skin = "purple",
       ),
       box(title = "Catch Info", width = 3, height = "150px",
           textOutput("catch_info"),
-          textOutput("weather_info")
+          textOutput("weather_info"),
+          textOutput("sell_info")
       )    
     ),
     fluidRow(
@@ -196,6 +202,9 @@ server <- function(input, output, session) {
         paste("Weather: ", weather)
     }
   })
+  output$sell_info <- renderText({
+    paste("Sell price: ", filter(museum, name == input$spec)$sell[1])
+  })
   output$available <- renderTable({
     if (input$hemi == "Southern"){
       mod_museum <- mutate(museum, month = month.abb.l[(as.integer(month) + 6 - 1) %% 12 + 1])
@@ -220,4 +229,4 @@ shinyApp(ui, server)
 ```
 
 
--->[Home](https://github.com/dwdeq/BIS15W2023_group5/)
+-->[Home](https://jmledford3115.github.io/datascibiol/)
