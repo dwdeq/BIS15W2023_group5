@@ -110,8 +110,9 @@ museum
 ```
 
 ##Graphs 
-sell price and spawn rate
+
 ```{r}
+#copy month pal
 museum$sell <- as.numeric(museum$sell)
 
 sum_museum <- museum %>% 
@@ -123,8 +124,9 @@ sum_museum <- museum %>%
   
 sum_museum %>% 
   ggplot(aes(x=n_months,y=sell))+
-  geom_boxplot(aes(group=n_hours))+
-  theme_classic()
+  geom_boxplot(aes(group=n_months))+
+  theme_classic()+
+  scale_x_continuous(breaks = seq(1,12, by =1))
 
 sum_museum %>% 
   ggplot(aes(x=n_hours,y=sell))+
@@ -133,39 +135,25 @@ sum_museum %>%
   scale_x_continuous(breaks = seq(1,24, by =1))
 ```
 
-does total catches tp unlock correspond to sell price
-```{r}
-
-```
-
-
-
-which fish is most likely to be spotted in each location
+avg sell price by month
 ```{r}
 museum %>% 
-  select(name, where_how, spawn_rates) %>% 
-  group_by(where_how) %>% 
-  tally()
   
   
 ```
 
+density curve
 ```{r}
 museum %>% 
-  filter(category == "fish") %>% 
-  ggplot(aes(x=spawn_rates))+
-  geom_bar()+
-  facet_wrap(~where_how)
-
+  filter(category=="fish") %>% 
+  ggplot(aes(x=sell))+
+  geom_density()+
+  facet_wrap(~where_how, ncol=4)+
+  theme_classic()
 ```
 
-which bug is most likely to be spotted in each location
-```{r}
 
-```
 
-```{r}
 
-```
 
 
