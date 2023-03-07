@@ -5,52 +5,76 @@ date: "2023-03-05"
 output: html_document
 ---
 
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(RColorBrewer)
+library(paletteer)
+library(janitor)
+library(here)
+library(shiny)
+library(shinydashboard)
+library(lubridate)
+```
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-insects <- clean_names(read_csv("data/insects.csv"))
-fishes <- clean_names(read_csv("data/fish.csv"))
+## Loading libraries
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(RColorBrewer)
+library(paletteer)
+library(janitor)
+library(here)
+library(shiny)
+library(shinydashboard)
+library(lubridate)
 ```
 
-```{r}
-bugs <- insects %>% 
-  select(-"critterpedia_filename", -"furniture_filename", -contains("id"), -contains("sh"), -contains("color"), -"number") %>% 
-  pivot_longer(nh_jan:nh_dec,
-               names_to = "month",
-               names_prefix = "nh_",
-               values_to = "times") %>% 
-  filter(times != "NA") %>% 
-  mutate_all(~ gsub("\\ ", " ", .)) %>% 
-  replace(. == "All day", "12 AM – 24 AM") %>% 
-  separate(times, into = c("start_times","end_times"), sep = " – ") %>% 
-  separate(start_times, into = c("start_times","start_td"), sep = " ") %>% 
-  separate(end_times, into = c("end_times","end_td"), sep = " ")
+## Loading the data
+```{r message=FALSE, warning=FALSE}
+bugs <- clean_names(read_csv(here("data","insects.csv")))
+fish <- clean_names(read_csv(here("data","fish.csv")))
 ```
 
+## Fixing error in data
 ```{r}
-bugs$start_times <- as.numeric(bugs$start_times)
-bugs$end_times <- as.numeric(bugs$end_times)
+bugs[65,34] <- "Ins45"
 ```
 
+## Cleaning up the "bugs" data frame
 ```{r}
 bugs <- bugs %>% 
-  mutate(start_times = ifelse(start_times == 12, 0, start_times)) %>% 
-  mutate(start_times = ifelse(start_td == "PM",start_times+12,start_times)) %>%
-  mutate(end_times = ifelse(end_times == 12, 0, end_times)) %>% 
-  mutate(end_times = ifelse(end_td == "PM",end_times+12,end_times)) %>% 
-  select(-"start_td",-"end_td") %>% 
+  select(-"critterpedia_filename", -"furniture_filename", -contains("id"), -contains("sh"), -contains("color"), -"number") %>% 
   mutate(category = "bugs")
 ```
 
+## Cleaning up the "fish" data frame
 ```{r}
-fish <- fishes %>% 
+fish <- fish %>% 
   select(-"critterpedia_filename", -"furniture_filename", -contains("id"), -contains("sh"), -contains("color"), -"number", -"lighting_type", -"rain_snow_catch_up", -"size") %>% 
+  mutate(category = "fish")
+```
+
+## Combining "fish" and "bugs" into the "museum" data frame
+```{r message=FALSE, warning=FALSE}
+museum <- full_join(fish, bugs)
+```
+
+## Pivoting the months & times into 2 columns
+```{r}
+ museum <- museum %>%
   pivot_longer(nh_jan:nh_dec,
                names_to = "month",
                names_prefix = "nh_",
-               values_to = "times") %>% 
+               values_to = "times")
+```
+
+## Separating the "times" column into "start times" and "end times"
+```{r message=FALSE, warning=FALSE}
+museum <- museum %>% 
   filter(times != "NA") %>% 
   mutate_all(~ gsub("\\ ", " ", .)) %>% 
   replace(. == "All day", "0 AM – 24 AM") %>% 
@@ -59,71 +83,77 @@ fish <- fishes %>%
   separate(end_times, into = c("end_times","end_td"), sep = " ")
 ```
 
+## Converting "start times" and "end times" to numerics
 ```{r}
-fish$start_times <- as.numeric(fish$start_times)
-fish$end_times <- as.numeric(fish$end_times)
+museum$start_times <- as.numeric(museum$start_times)
+museum$end_times <- as.numeric(museum$end_times)
 ```
 
+## Converting all times to 24 hours
 ```{r}
-fish <- fish %>% 
+museum <- museum %>% 
   mutate(start_times = ifelse(start_times == 12, 0, start_times)) %>% 
   mutate(start_times = ifelse(start_td == "PM",start_times+12,start_times)) %>%
   mutate(end_times = ifelse(end_times == 12, 0, end_times)) %>% 
   mutate(end_times = ifelse(end_td == "PM",end_times+12,end_times)) %>% 
-  select(-"start_td",-"end_td") %>% 
-  mutate(category = "fish")
+  select(-"start_td",-"end_td")
+```
+
+## Converting "months" to factors based on the built in "month.abb" levels
+```{r}
+month.abb.l <- tolower(month.abb)
+museum$month <- factor(museum$month, levels = month.abb.l)
 ```
 
 ```{r}
-museum <- full_join(fish, bugs)
 museum
-```
-```{r}
-glimpse(museum)
 ```
 
 ##Graphs 
-sell price and spawn rate
+
 ```{r}
-museum %>% 
-  as.numeric("name") %>% 
+#copy month pal
+museum$sell <- as.numeric(museum$sell)
+
+sum_museum <- museum %>% 
+  mutate(end_times = ifelse(museum$start_times > museum$end_times,museum$end_times + 24,museum$end_times)) %>% 
   group_by(name) %>% 
-  summarize(species = distinct_all(name), sell, spawn_rates) 
+  summarize(n_months = mean(n_distinct(month)),
+            n_hours = mean(end_times - start_times),
+            sell = mean(sell)) 
   
+sum_museum %>% 
+  ggplot(aes(x=n_months,y=sell))+
+  geom_boxplot(aes(group=n_months))+
+  theme_classic()+
+  scale_x_continuous(breaks = seq(1,12, by =1))
+
+sum_museum %>% 
+  ggplot(aes(x=n_hours,y=sell))+
+  geom_boxplot(aes(group=n_hours))+
+  theme_classic()+
+  scale_x_continuous(breaks = seq(1,24, by =1))
 ```
-does total catches tp unlock correspond to sell price
-```{r}
 
-```
-
-
-
-which fish is most likely to be spotted in each location
+avg sell price by month
 ```{r}
 museum %>% 
-  select(name, where_how, spawn_rates) %>% 
-  group_by(where_how) %>% 
-  tally()
   
   
 ```
 
+density curve
 ```{r}
 museum %>% 
-  filter(category == "fish") %>% 
-  ggplot(aes(x=spawn_rates))+
-  geom_bar()+
-  facet_wrap(~where_how)
-
+  filter(category=="fish") %>% 
+  ggplot(aes(x=sell))+
+  geom_density()+
+  facet_wrap(~where_how, ncol=4)+
+  theme_classic()
 ```
 
-which bug is most likely to be spotted in each location
-```{r}
 
-```
 
-```{r}
 
-```
 
 
