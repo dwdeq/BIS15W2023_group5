@@ -102,7 +102,9 @@ museum <- museum %>%
 ```
 
 
+
 ##Graphs
+
 
 
 #Graph of Avg Sell Price in Each Month + Hour
@@ -119,12 +121,13 @@ sum_museum <- museum %>%
 
 sum_museum$n_hours <-as.factor(sum_museum$n_hours)
 sum_museum$n_months <-as.factor(sum_museum$n_months)
+
 sum_museum %>%
   ggplot(aes(x=n_months,y=sell, fill=n_months))+
   geom_boxplot(aes(group=n_months))+
   theme_classic()+
   theme(legend.position="none")+
-  labs(title = "Average Sell Price in Each Month",
+  labs(title = "Average Sell Price Within a Number of Months",
        x = "Months",
        y = "Sell Price",
        color=NULL)
@@ -135,7 +138,7 @@ sum_museum %>%
   geom_boxplot(aes(group=n_hours))+
   theme_classic()+
   theme(legend.position="none")+
-  labs(title = "Average Sell Price in Each Hour",
+  labs(title = "Average Sell Price Within Hour Availability",
        x = "Hours",
        y = "Sell Price",
        color=NULL)
@@ -143,11 +146,25 @@ sum_museum %>%
 
 #Density Curve Representing the Selling Prices of Each Location For Fish
 ```{r}
-museum %>% 
+museum <-museum %>% 
   filter(category=="fish") %>% 
-  ggplot(aes(x=sell, color=where_how))+
-  geom_density()+
-  facet_wrap(~where_how, ncol=4, scales="free_y")+
+  mutate(where=case_when(where_how == "River (clifftop)"~"river",
+                        where_how =="River (mouth)" ~ "river" ,
+                        where_how == "River" ~ "river",
+                        where_how == "Sea" ~ "sea",
+                        where_how == "Sea (rainy days)" ~ "sea",
+                        where_how == "Pier" ~ "sea",
+                        where_how == "Pond" ~ "pond"))
+
+  ggplot(museum, aes(x=sell))+
+  geom_density(data=filter(museum, where_how =="River" | where_how == "River (clifftop)"), color = "slateblue3")+
+  geom_density(data=filter(museum, where_how =="River" | where_how == "River (mouth)"), color = "salmon1")+
+  geom_density(data=filter(museum, where_how =="River"), color = "gray12")+
+  geom_density(data=filter(museum, where_how =="Sea") , color = "gray12")+
+  geom_density(data=filter(museum, where_how =="Sea" | where_how == "Sea (rainy days)"), color = "mediumvioletred")+
+    geom_density(data=filter(museum, where_how =="Sea" | where_how == "Pier"), color = "darkgoldenrod1")+
+    geom_density(data=filter(museum, where_how =="Pond"), color = "gray12")+
+  facet_wrap(~where, ncol=3)+
   theme_classic()+
   theme(legend.position="none")+
   labs(title = "Density of Fish Sell Price by Location",
