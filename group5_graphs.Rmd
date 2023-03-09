@@ -5,16 +5,6 @@ date: "2023-03-05"
 output: html_document
 ---
 
-```{r message=FALSE, warning=FALSE}
-library(tidyverse)
-library(RColorBrewer)
-library(paletteer)
-library(janitor)
-library(here)
-library(shiny)
-library(shinydashboard)
-library(lubridate)
-```
 
 
 ```{r setup, include=FALSE}
@@ -127,7 +117,8 @@ sum_museum <- museum %>%
             n_hours = mean(end_times - start_times),
             sell = mean(sell)) 
 
-
+sum_museum$n_hours <-as.factor(sum_museum$n_hours)
+sum_museum$n_months <-as.factor(sum_museum$n_months)
 sum_museum %>%
   ggplot(aes(x=n_months,y=sell, fill=n_months))+
   geom_boxplot(aes(group=n_months))+
@@ -136,8 +127,8 @@ sum_museum %>%
   labs(title = "Average Sell Price in Each Month",
        x = "Months",
        y = "Sell Price",
-       color=NULL)+
-  scale_x_continuous(breaks = seq(1,12, by =1))
+       color=NULL)
+  
 
 sum_museum %>% 
   ggplot(aes(x=n_hours,y=sell, fill=n_hours))+
@@ -147,8 +138,7 @@ sum_museum %>%
   labs(title = "Average Sell Price in Each Hour",
        x = "Hours",
        y = "Sell Price",
-       color=NULL)+
-  scale_x_continuous(breaks = seq(1,24, by =1))
+       color=NULL)
 ```
 
 #Density Curve Representing the Selling Prices of Each Location For Fish
@@ -157,13 +147,15 @@ museum %>%
   filter(category=="fish") %>% 
   ggplot(aes(x=sell, color=where_how))+
   geom_density()+
-  facet_wrap(~where_how, ncol=4)+
+  facet_wrap(~where_how, ncol=4, scales="free_y")+
   theme_classic()+
   theme(legend.position="none")+
   labs(title = "Density of Fish Sell Price by Location",
        x = "Sell Price",
        y = NULL,
-       color=NULL)
+       color=NULL) 
+#River and River (clifftop) should overlap -- river fish still appear in river clifftop and river mouth
+#same goes for sea and sea rainy days because there are certain fish that appear only in rainy days 
 ```
 
 
