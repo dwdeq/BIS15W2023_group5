@@ -10,5 +10,5 @@ This repository includes:
 - "group5_pres.Rmd", an R markdown file that originally housed the presentation aspect of our group project. Written by Ayana, with help from Sidney.
 - this README file, written by Sidney and DQ
 
-The presentation for this project can be found in the link below:
+The presentation for this project can be found in the following link:
 https://docs.google.com/presentation/d/1_j__ku30f6L5vbvkjlZ3TEWrx8I3c5P-_qnj7GpSE-8/edit?usp=sharing
