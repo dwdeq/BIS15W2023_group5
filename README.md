@@ -11,4 +11,4 @@ This repository includes:
 - this README file, written by Sidney and DQ
 
 The presentation for this project can be found in the following link:
-https://docs.google.com/presentation/d/1_j__ku30f6L5vbvkjlZ3TEWrx8I3c5P-_qnj7GpSE-8/edit?usp=sharing
+https://docs.google.com/presentation/d/1_j__ku30f6L5vbvkjlZ3TEWrx8I3c5P-_qnj7GpSE-8/edit
